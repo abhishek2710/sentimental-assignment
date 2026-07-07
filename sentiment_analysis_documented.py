@@ -88,22 +88,22 @@ def load_models():
     models = {
 
         "Logistic Regression":
-            joblib.load(model_dir / "logistic.pkl"),
+            joblib.load(model_dir / "logistic_model.pkl"),
 
         "Naive Bayes":
-            joblib.load(model_dir / "nb.pkl"),
+            joblib.load(model_dir / "nb_model.pkl"),
 
         "Random Forest":
-            joblib.load(model_dir / "rf.pkl"),
+            joblib.load(model_dir / "rf_model.pkl"),
 
         "SVM":
-            joblib.load(model_dir / "svm.pkl"),
+            joblib.load(model_dir / "svm_model.pkl"),
 
         "XGBoost":
-            joblib.load(model_dir / "xgb.pkl"),
+            joblib.load(model_dir / "xgb_model.pkl"),
 
         "ANN":
-            joblib.load(model_dir / "ann.pkl")
+            joblib.load(model_dir / "ann_model.pkl")
 
     }
 
