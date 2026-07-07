@@ -256,10 +256,6 @@ for bar, acc in zip(bars, accuracies):
 plt.tight_layout()
 plt.show()
 
-# ==================== CODE CELL 24 ====================
-# Purpose: Converted from Jupyter notebook.
-pip install xgboost vaderSentiment
-
 # ==================== CODE CELL 25 ====================
 # Purpose: Converted from Jupyter notebook.
 #24 - Model 5 VADER (Lexicon Based)
