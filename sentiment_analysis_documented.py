@@ -16,11 +16,11 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 st.set_page_config(
     page_title="Sentiment Analysis",
-    page_icon="😊",
+    page_icon="",
     layout="wide"
 )
 
-st.title("😊 Sentiment Analysis using Multiple Models")
+st.title("Sentiment Analysis using Multiple Models")
 
 st.markdown(
 """
@@ -226,22 +226,38 @@ if st.button("Predict Sentiment"):
             # DISPLAY PREDICTION
             # -------------------------------------------------------
 
-        st.markdown("## 📊 Prediction Result")
+            st.markdown("## Prediction Summary")
             
-        col1, col2 = st.columns(2)
+            col1, col2 = st.columns(2)
             
-        with col1:
-            st.info(f"🤖 **Model Used**\n\n{selected_model}")
-        
-        with col2:
-            if prediction.lower() == "positive":
-                st.success(f"🟢 **Prediction**\n\n{prediction.upper()}")
-
-            elif prediction.lower() == "negative":
-                st.error(f"🔴 **Prediction**\n\n{prediction.upper()}")
-
-            else:
-                st.warning(f"🟡 **Prediction**\n\n{prediction.upper()}")
+            with col1:
+                st.info(f"""
+            **Model Used**
+            
+            {selected_model}
+            """)
+            
+            with col2:
+                if prediction.lower() == "positive":
+                    st.success(f"""
+            **Prediction**
+            
+            {prediction.upper()}
+            """)
+            
+                elif prediction.lower() == "negative":
+                    st.error(f"""
+            **Prediction**
+            
+            {prediction.upper()}
+            """)
+            
+                else:
+                    st.warning(f"""
+            **Prediction**
+            
+            {prediction.upper()}
+            """)
         
         if confidence is not None:
         
