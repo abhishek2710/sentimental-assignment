@@ -4,6 +4,7 @@ import re
 import string
 import nltk
 from pathlib import Path
+import pandas as pd
 
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
@@ -199,11 +200,12 @@ if st.button("Predict Sentiment"):
 
             # -----------------------------
             # Confidence Calculation
-            # -----------------------------
+            # -----------------------------      
             confidence = None
-        
+            probabilities = None
+            
             if hasattr(model, "predict_proba"):
-        
+            
                 probabilities = model.predict_proba(vector)[0]
                 confidence = float(probabilities.max())
         
@@ -249,6 +251,33 @@ if st.button("Predict Sentiment"):
             )
         
             st.progress(confidence)
+
+            # -------------------------------------------------------
+            # Probability Chart
+            # -------------------------------------------------------
+            
+            if selected_model not in ["SVM", "VADER"] and probabilities is not None:
+            
+                st.markdown("## 📈 Sentiment Probability")
+            
+                prob_df = pd.DataFrame({
+                    "Sentiment": encoder.classes_,
+                    "Probability": probabilities
+                })
+            
+                st.bar_chart(
+                    prob_df,
+                    x="Sentiment",
+                    y="Probability",
+                    use_container_width=True
+                )
+            
+                st.dataframe(
+                    prob_df.style.format({
+                        "Probability": "{:.2%}"
+                    }),
+                    use_container_width=True
+                )
         else:
             st.info("Confidence score is not available for this model.")
 
