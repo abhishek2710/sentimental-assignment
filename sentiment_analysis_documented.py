@@ -227,10 +227,10 @@ if st.button("Predict Sentiment"):
         
         if confidence is not None:
 
-        st.metric(
-            "Confidence",
-            f"{confidence:.2%}"
-        )
+            st.metric(
+                "Confidence",
+                f"{confidence:.2%}"
+            )
     
         st.progress(float(confidence))
 
