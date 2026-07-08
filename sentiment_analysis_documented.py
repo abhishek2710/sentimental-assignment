@@ -16,7 +16,6 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 st.set_page_config(
     page_title="Sentiment Analysis",
-    page_icon="",
     layout="wide"
 )
 
@@ -274,7 +273,7 @@ if st.button("Predict Sentiment"):
             
             if selected_model not in ["SVM", "VADER"] and probabilities is not None:
             
-                st.markdown("## 📈 Sentiment Probability")
+                st.markdown("## Sentiment Probability")
             
                 prob_df = pd.DataFrame({
                     "Sentiment": encoder.classes_,
