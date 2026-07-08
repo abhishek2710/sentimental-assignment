@@ -202,10 +202,11 @@ if st.button("Predict Sentiment"):
             if hasattr(model, "predict_proba"):
 
                 confidence = model.predict_proba(vector).max()
-
-         st.markdown("### Prediction Result")
-    st.info(f"**Model Used:** {selected_model}")
-    st.success(f"**Prediction:** {prediction.upper()}")
+                st.markdown("### Prediction Result")
+                st.info(f"**Model Used:** {selected_model}")
+                st.success(f"**Prediction:** {prediction.upper()}")
+            else:
+                st.warning("Please enter a review.")
 
         if confidence is not None:
 
