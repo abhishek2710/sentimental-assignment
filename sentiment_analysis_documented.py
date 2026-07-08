@@ -197,23 +197,42 @@ if st.button("Predict Sentiment"):
 
                 prediction = model.predict(vector)[0]
 
-            confidence = None
+                confidence = None
+                
+                # Get confidence if the model supports probabilities
+                if hasattr(model, "predict_proba"):
+                    probabilities = model.predict_proba(vector)[0]
+                    confidence = probabilities.max()
+            
+            # -------------------------------------------------------
+            # DISPLAY PREDICTION
+            # -------------------------------------------------------
 
-            if hasattr(model, "predict_proba"):
+        st.markdown("## 📊 Prediction Result")
+            
+        col1, col2 = st.columns(2)
+            
+        with col1:
+        st.info(f"🤖 **Model Used**\n\n{selected_model}")
+        
+        with col2:
+        if prediction.lower() == "positive":
+            st.success(f"🟢 **Prediction**\n\n{prediction.upper()}")
 
-                confidence = model.predict_proba(vector).max()
-                st.markdown("### Prediction Result")
-                st.info(f"**Model Used:** {selected_model}")
-                st.success(f"**Prediction:** {prediction.upper()}")
-            else:
-                st.warning("Please enter a review.")
+        elif prediction.lower() == "negative":
+            st.error(f"🔴 **Prediction**\n\n{prediction.upper()}")
 
+        else:
+            st.warning(f"🟡 **Prediction**\n\n{prediction.upper()}")
+        
         if confidence is not None:
 
-            st.metric(
-                "Confidence",
-                f"{confidence:.2%}"
-            )
+        st.metric(
+            "Confidence",
+            f"{confidence:.2%}"
+        )
+    
+        st.progress(float(confidence))
 
 # -------------------------------------------------------
 # MODEL INFORMATION
