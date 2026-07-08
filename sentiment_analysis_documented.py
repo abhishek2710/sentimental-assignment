@@ -203,7 +203,9 @@ if st.button("Predict Sentiment"):
 
                 confidence = model.predict_proba(vector).max()
 
-        st.success(f"Prediction : **{prediction.upper()}**")
+         st.markdown("### Prediction Result")
+    st.info(f"**Model Used:** {selected_model}")
+    st.success(f"**Prediction:** {prediction.upper()}")
 
         if confidence is not None:
 
