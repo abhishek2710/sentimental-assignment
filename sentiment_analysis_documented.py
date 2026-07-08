@@ -213,17 +213,17 @@ if st.button("Predict Sentiment"):
         col1, col2 = st.columns(2)
             
         with col1:
-        st.info(f"🤖 **Model Used**\n\n{selected_model}")
+            st.info(f"🤖 **Model Used**\n\n{selected_model}")
         
         with col2:
-        if prediction.lower() == "positive":
-            st.success(f"🟢 **Prediction**\n\n{prediction.upper()}")
+            if prediction.lower() == "positive":
+                st.success(f"🟢 **Prediction**\n\n{prediction.upper()}")
 
-        elif prediction.lower() == "negative":
-            st.error(f"🔴 **Prediction**\n\n{prediction.upper()}")
+            elif prediction.lower() == "negative":
+                st.error(f"🔴 **Prediction**\n\n{prediction.upper()}")
 
-        else:
-            st.warning(f"🟡 **Prediction**\n\n{prediction.upper()}")
+            else:
+                st.warning(f"🟡 **Prediction**\n\n{prediction.upper()}")
         
         if confidence is not None:
 
