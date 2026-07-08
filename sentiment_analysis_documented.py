@@ -197,12 +197,28 @@ if st.button("Predict Sentiment"):
 
                 prediction = model.predict(vector)[0]
 
-                confidence = None
-                
-                # Get confidence if the model supports probabilities
-                if hasattr(model, "predict_proba"):
-                    probabilities = model.predict_proba(vector)[0]
-                    confidence = probabilities.max()
+            # -----------------------------
+            # Confidence Calculation
+            # -----------------------------
+            confidence = None
+        
+            if hasattr(model, "predict_proba"):
+        
+                probabilities = model.predict_proba(vector)[0]
+                confidence = float(probabilities.max())
+        
+            elif hasattr(model, "decision_function"):
+        
+                score = model.decision_function(vector)
+        
+                import numpy as np
+        
+                if score.ndim == 1:
+                    confidence = float(1 / (1 + np.exp(-abs(score[0]))))
+                else:
+                    exp_scores = np.exp(score)
+                    probs = exp_scores / exp_scores.sum(axis=1, keepdims=True)
+                    confidence = float(probs.max())
             
             # -------------------------------------------------------
             # DISPLAY PREDICTION
@@ -226,13 +242,15 @@ if st.button("Predict Sentiment"):
                 st.warning(f"🟡 **Prediction**\n\n{prediction.upper()}")
         
         if confidence is not None:
-
+        
             st.metric(
                 "Confidence",
                 f"{confidence:.2%}"
             )
-    
-        st.progress(float(confidence))
+        
+            st.progress(confidence)
+        else:
+            st.info("Confidence score is not available for this model.")
 
 # -------------------------------------------------------
 # MODEL INFORMATION
