@@ -159,142 +159,232 @@ review = st.text_area(
 if st.button("Predict Sentiment"):
 
     if review.strip() == "":
-
         st.warning("Please enter a review.")
 
     else:
 
         cleaned = clean_text(review)
-
         vector = tfidf.transform([cleaned])
 
-        if selected_model == "VADER":
+        results = []
 
-            score = vader.polarity_scores(review)
+        # ------------------------------------
+        # Run every ML model
+        # ------------------------------------
 
-            if score["compound"] >= 0.05:
-                prediction = "positive"
+        for model_name, model in models.items():
 
-            elif score["compound"] <= -0.05:
-                prediction = "negative"
+            prediction = None
+            confidence = None
 
-            else:
-                prediction = "neutral"
-
-            confidence = abs(score["compound"])
-
-        else:
-
-            model = models[selected_model]
-
-            if selected_model == "XGBoost":
+            if model_name == "XGBoost":
 
                 pred = model.predict(vector)
-
                 prediction = encoder.inverse_transform(pred)[0]
 
             else:
 
                 prediction = model.predict(vector)[0]
 
-            # -----------------------------
-            # Confidence Calculation
-            # -----------------------------      
-            confidence = None
             probabilities = None
-            
+
             if hasattr(model, "predict_proba"):
-            
+
                 probabilities = model.predict_proba(vector)[0]
                 confidence = float(probabilities.max())
-        
+
             elif hasattr(model, "decision_function"):
-        
-                score = model.decision_function(vector)
-        
+
                 import numpy as np
-        
+
+                score = model.decision_function(vector)
+
                 if score.ndim == 1:
-                    confidence = float(1 / (1 + np.exp(-abs(score[0]))))
+                    confidence = float(
+                        1 / (1 + np.exp(-abs(score[0])))
+                    )
+
                 else:
                     exp_scores = np.exp(score)
                     probs = exp_scores / exp_scores.sum(axis=1, keepdims=True)
                     confidence = float(probs.max())
-            
-            # -------------------------------------------------------
-            # DISPLAY PREDICTION
-            # -------------------------------------------------------
 
-            st.markdown("## Prediction Summary")
-            
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.info(f"""
-            **Model Used**
-            
-            {selected_model}
-            """)
-            
-            with col2:
-                if prediction.lower() == "positive":
-                    st.success(f"""
-            **Prediction**
-            
-            {prediction.upper()}
-            """)
-            
-                elif prediction.lower() == "negative":
-                    st.error(f"""
-            **Prediction**
-            
-            {prediction.upper()}
-            """)
-            
-                else:
-                    st.warning(f"""
-            **Prediction**
-            
-            {prediction.upper()}
-            """)
-        
-        if confidence is not None:
-        
-            st.metric(
-                "Confidence",
-                f"{confidence:.2%}"
-            )
-        
-            st.progress(confidence)
+            else:
+                confidence = 0.0
 
-            # -------------------------------------------------------
-            # Probability Chart
-            # -------------------------------------------------------
-            
-            if selected_model not in ["SVM", "VADER"] and probabilities is not None:
-            
-                st.markdown("## Sentiment Probability")
-            
-                prob_df = pd.DataFrame({
-                    "Sentiment": encoder.classes_,
-                    "Probability": probabilities
-                })
-            
-                st.bar_chart(
-                    prob_df,
-                    x="Sentiment",
-                    y="Probability",
-                    use_container_width=True
-                )
-            
-                st.dataframe(
-                    prob_df.style.format({
-                        "Probability": "{:.2%}"
-                    }),
-                    use_container_width=True
-                )
+            results.append({
+
+                "Model": model_name,
+                "Prediction": prediction,
+                "Confidence": confidence
+
+            })
+
+        # ------------------------------------
+        # Run VADER
+        # ------------------------------------
+
+        vader_score = vader.polarity_scores(review)
+
+        if vader_score["compound"] >= 0.05:
+            vader_prediction = "positive"
+
+        elif vader_score["compound"] <= -0.05:
+            vader_prediction = "negative"
+
         else:
-            st.info("Confidence score is not available for this model.")
+            vader_prediction = "neutral"
+
+        results.append({
+
+            "Model": "VADER",
+            "Prediction": vader_prediction,
+            "Confidence": abs(vader_score["compound"])
+
+        })
+
+        # ------------------------------------
+        # Convert to dataframe
+        # ------------------------------------
+
+        result_df = pd.DataFrame(results)
+
+        result_df["Confidence %"] = (
+            result_df["Confidence"] * 100
+        ).round(2)
+
+        result_df = result_df.sort_values(
+            by="Confidence",
+            ascending=False
+        ).reset_index(drop=True)
+
+        # ------------------------------------
+        # Best model
+        # ------------------------------------
+
+        best = result_df.iloc[0]
+
+        st.markdown("## 🏆 Best Performing Model")
+
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric(
+            "Best Model",
+            best["Model"]
+        )
+
+        col2.metric(
+            "Prediction",
+            best["Prediction"].upper()
+        )
+
+        col3.metric(
+            "Confidence",
+            f'{best["Confidence"]:.2%}'
+        )
+
+        st.success(
+            f"**{best['Model']}** produced the highest confidence "
+            f"({best['Confidence']:.2%}) for this review."
+        )
+
+        st.markdown("---")
+
+        # ------------------------------------
+        # Comparison Table
+        # ------------------------------------
+
+        st.subheader("Model Comparison")
+
+        st.dataframe(
+
+            result_df[
+                ["Model", "Prediction", "Confidence %"]
+            ],
+
+            use_container_width=True
+
+        )
+
+        # ------------------------------------
+        # Confidence Chart
+        # ------------------------------------
+
+        st.subheader("Confidence Comparison")
+
+        chart_df = result_df.copy()
+
+        chart_df = chart_df.set_index("Model")
+
+        st.bar_chart(
+            chart_df["Confidence %"],
+            use_container_width=True
+        )
+
+        # ------------------------------------
+        # Agreement Summary
+        # ------------------------------------
+
+        st.subheader("Prediction Agreement")
+
+        agree = (
+            result_df.groupby("Prediction")
+            .size()
+            .reset_index(name="Votes")
+            .sort_values(
+                by="Votes",
+                ascending=False
+            )
+        )
+
+        st.dataframe(
+            agree,
+            use_container_width=True
+        )
+
+        winner = agree.iloc[0]
+
+        st.info(
+
+            f"Majority Vote Prediction: **{winner['Prediction'].upper()}** "
+            f"({winner['Votes']} out of {len(result_df)} models)"
+
+        )
+
+        # ------------------------------------
+        # Probability of Selected Model
+        # ------------------------------------
+
+        if selected_model != "VADER":
+
+            model = models[selected_model]
+
+            if hasattr(model, "predict_proba"):
+
+                probs = model.predict_proba(vector)[0]
+
+                prob_df = pd.DataFrame({
+
+                    "Sentiment": encoder.classes_,
+                    "Probability": probs
+
+                })
+
+                st.subheader(
+                    f"{selected_model} Probability Distribution"
+                )
+
+                st.bar_chart(
+
+                    prob_df,
+
+                    x="Sentiment",
+
+                    y="Probability",
+
+                    use_container_width=True
+
+                )
 
 # -------------------------------------------------------
 # MODEL INFORMATION
